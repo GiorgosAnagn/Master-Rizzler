@@ -10,6 +10,7 @@ Master Rizzler is a mobile-friendly group scoring app. Accounts use Supabase Aut
 4. In **Authentication > Providers**, enable Email sign-ups.
 5. Decide whether to require email confirmation. If enabled, registration shows a confirmation message and the user must confirm before signing in.
 6. Re-running this SQL also adds `point_events`, `group_tasks`, and `group_members` to the `supabase_realtime` publication.
+7. Re-running this SQL enables full replica identity so Realtime delete events can refresh other devices correctly.
 
 ## Vercel environment variables
 

@@ -12,6 +12,10 @@ begin
   end if;
 end $$;
 
+alter table public.point_events replica identity full;
+alter table public.group_tasks replica identity full;
+alter table public.group_members replica identity full;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null check (length(trim(display_name)) between 1 and 40),
@@ -77,25 +81,33 @@ alter table public.group_members enable row level security;
 alter table public.group_tasks enable row level security;
 alter table public.point_events enable row level security;
 
+create or replace function public.is_group_member(target_group uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.group_members
+    where group_id = target_group and user_id = auth.uid() and status = 'active'
+  );
+$$;
+
 drop policy if exists "profiles own data" on public.profiles;
 create policy "profiles own data" on public.profiles for all to authenticated
 using (auth.uid() = id) with check (auth.uid() = id);
 
 drop policy if exists "members read groups" on public.groups;
 create policy "members read groups" on public.groups for select to authenticated
-using (exists (select 1 from public.group_members m where m.group_id = id and m.user_id = auth.uid() and m.status = 'active'));
+using (public.is_group_member(id));
 
 drop policy if exists "members read memberships" on public.group_members;
 create policy "members read memberships" on public.group_members for select to authenticated
-using (user_id = auth.uid());
+using (user_id = auth.uid() or public.is_group_member(group_id));
 
 drop policy if exists "members read tasks" on public.group_tasks;
 create policy "members read tasks" on public.group_tasks for select to authenticated
-using (exists (select 1 from public.group_members m where m.group_id = public.group_tasks.group_id and m.user_id = auth.uid() and m.status = 'active'));
+using (public.is_group_member(group_id));
 
 drop policy if exists "members read events" on public.point_events;
 create policy "members read events" on public.point_events for select to authenticated
-using (exists (select 1 from public.group_members m where m.group_id = public.point_events.group_id and m.user_id = auth.uid() and m.status = 'active'));
+using (public.is_group_member(group_id));
 
 do $$
 begin

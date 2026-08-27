@@ -167,6 +167,14 @@ module.exports = async function handler(request, response) {
       return response.status(200).json({ user: await profile(client, user) });
     }
 
+    if (request.method === "POST" && request.query?.action === "change-password") {
+      const password = String(input.password || "");
+      if (password.length < 6) return fail(response, 400, "Password must be at least 6 characters.");
+      const { data, error } = await client.auth.admin.updateUserById(user.id, { password });
+      if (error) throw error;
+      return response.status(200).json({ user: data.user });
+    }
+
     const groupId = String(input.groupId || request.query?.groupId || "");
     const me = await membership(client, groupId, user.id, false);
     if (!me || (me.status !== "active" && request.query?.action !== "accept-member")) return fail(response, 403, "You do not have access to this group.");
