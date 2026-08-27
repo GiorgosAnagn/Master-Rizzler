@@ -26,6 +26,11 @@
 	.hero { padding-top: 10px; padding-bottom: 18px; }
 	.profile-button { padding: 0; background: transparent; border-radius: 50%; }
 	.profile-button .avatar { border: 1px solid var(--line); }
+	.leader { position: relative; flex-wrap: wrap; }
+	.player-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 0; font-weight: 800; }
+	.player-actions { display: none; width: 100%; gap: 8px; padding: 8px 0 0 39px; }
+	.player-actions.open { display: flex; }
+	.player-actions button { flex: 1; min-width: 0; }
 	@media (max-width: 800px) { .app { padding-top: calc(4px + env(safe-area-inset-top)); } .grid { grid-template-columns: minmax(0, 1fr); } .hero h1 { font-size: 48px; } .task { align-items: flex-start; flex-wrap: wrap; } .task-text { flex-basis: 100%; } .task .points { margin-left: auto; } }
 </style>
 </head>
@@ -81,7 +86,7 @@ authRender();if(token)loadLobby();else show('authScreen');
 		if (isAdmin) {
 			const rows = [...document.querySelectorAll("#leaderboard .leader")];
 			const ranked = [...activeMembers].sort((a, b) => (state.scores[b.user_id] || 0) - (state.scores[a.user_id] || 0));
-			rows.forEach((row, index) => { const member = ranked[index]; if (member && member.user_id !== me.user_id && member.role !== "owner") { const kick = document.createElement("button"); kick.className = "danger"; kick.textContent = "Remove"; kick.onclick = () => removeMember(member.user_id); row.append(kick); } });
+			rows.forEach((row, index) => { const member = ranked[index]; if (member && member.user_id !== me.user_id && member.role !== "owner") { const name = row.querySelector(".name"); const nameButton = document.createElement("button"); nameButton.className = "player-name"; nameButton.textContent = name.textContent; nameButton.setAttribute("aria-label", `Actions for ${member.profiles?.display_name || "player"}`); const actions = document.createElement("div"); actions.className = "player-actions"; const admin = document.createElement("button"); admin.className = "outline"; admin.textContent = member.role === "admin" ? "Remove admin" : "Make admin"; admin.onclick = () => setRole(member.user_id); const kick = document.createElement("button"); kick.className = "danger"; kick.textContent = "Remove"; kick.onclick = () => removeMember(member.user_id); actions.append(admin, kick); name.replaceWith(nameButton); row.append(actions); nameButton.onclick = event => { event.stopPropagation(); document.querySelectorAll(".player-actions.open").forEach(menu => menu.classList.remove("open")); actions.classList.toggle("open"); }; } });
 		}
 	};
 	async function copyGroupCode() { try { await navigator.clipboard.writeText(currentState.group.code); const button = document.getElementById("heroCopyCode"); button.textContent = "Code copied"; setTimeout(() => { button.textContent = "Copy group code"; }, 1600); } catch { alert("Copy failed. Group code: " + currentState.group.code); } }
