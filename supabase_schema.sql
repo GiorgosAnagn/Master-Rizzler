@@ -22,6 +22,14 @@ alter table public.point_events enable row level security;
 
 drop policy if exists "public can read players" on public.players;
 drop policy if exists "public can read point events" on public.point_events;
+drop policy if exists "public can insert point events" on public.point_events;
 
 create policy "public can read players" on public.players for select using (true);
 create policy "public can read point events" on public.point_events for select using (true);
+create policy "public can insert point events" on public.point_events
+  for insert
+  with check (
+    exists (select 1 from public.players where public.players.name = player_name)
+    and points between -10 and 50
+    and length(trim(action)) > 0
+  );
