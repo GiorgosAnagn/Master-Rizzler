@@ -18,6 +18,9 @@ const penalties = [
 ];
 
 function client() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in Vercel environment variables.");
+  }
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
@@ -68,6 +71,9 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     console.error(error);
-    return response.status(500).json({ error: "Ο server δεν είναι διαθέσιμος." });
+    const message = error.message && error.message.startsWith("Missing ")
+      ? error.message
+      : "Ο server δεν είναι διαθέσιμος. Check the Vercel function logs.";
+    return response.status(500).json({ error: message });
   }
 };

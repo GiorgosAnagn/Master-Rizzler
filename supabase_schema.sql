@@ -20,5 +20,8 @@ on conflict (name) do nothing;
 alter table public.players enable row level security;
 alter table public.point_events enable row level security;
 
+drop policy if exists "public can read players" on public.players;
+drop policy if exists "public can read point events" on public.point_events;
+
 create policy "public can read players" on public.players for select using (true);
 create policy "public can read point events" on public.point_events for select using (true);
