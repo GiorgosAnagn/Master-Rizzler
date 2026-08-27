@@ -20,7 +20,9 @@ const penalties = [
 function client() {
   const supabaseUrl = String(process.env.SUPABASE_URL || "")
     .trim()
-    .replace(/^['"`]|['"`]$/g, "");
+    .replace(/^['"`]|['"`]$/g, "")
+    .replace(/\/rest\/v1\/?$/, "")
+    .replace(/\/+$/, "");
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "")
     .trim()
     .replace(/^['"`]|['"`]$/g, "");
