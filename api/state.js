@@ -115,6 +115,8 @@ module.exports = async function handler(request, response) {
       const code = String(input.code || "").replace(/\D/g, "").slice(0, 6);
       const { data: group, error } = await client.from("groups").select("id").eq("code", code).single();
       if (error || !group) return fail(response, 404, "Group code not found.");
+      const existing = await membership(client, group.id, user.id, false);
+      if (existing?.status === "active") return fail(response, 409, "You are already a member of this group.");
       const { error: joinError } = await client.from("group_members").upsert({ group_id: group.id, user_id: user.id, role: "member", status: "pending", invited_by: user.id }, { onConflict: "group_id,user_id" });
       if (joinError) throw joinError;
       return response.status(200).json({ message: "Join request sent to the group admins." });
@@ -177,8 +179,21 @@ module.exports = async function handler(request, response) {
       return response.status(200).json(await groupState(client, groupId, user));
     }
 
+    if (request.method === "DELETE" && request.query?.action === "remove-member") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can remove members.");
+      if (input.userId === user.id) return fail(response, 400, "You cannot remove yourself from the group.");
+      const target = await membership(client, groupId, input.userId, false);
+      if (!target || target.role === "owner") return fail(response, 400, "That member cannot be removed.");
+      const { error } = await client.from("group_members").delete().eq("group_id", groupId).eq("user_id", input.userId);
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
     if (request.method === "POST" && request.query?.action === "add-points") {
       const { playerId, taskId } = input;
+      const recipient = await membership(client, groupId, playerId);
+      if (!recipient) return fail(response, 400, "That player is not an active member of this group.");
+      if (me.role === "member" && playerId !== user.id) return fail(response, 403, "Members can only add points to themselves.");
       const { data: task, error: taskError } = await client.from("group_tasks").select("description, points").eq("id", taskId).eq("group_id", groupId).single();
       if (taskError || !task) return fail(response, 404, "Task not found.");
       const { error } = await client.from("point_events").insert({ group_id: groupId, player_id: playerId, task_id: taskId, action: task.description, points: task.points, created_by: user.id });

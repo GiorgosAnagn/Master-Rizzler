@@ -14,6 +14,14 @@
 :root{--ink:#edf5f0;--muted:#9aa9a2;--bg:#101313;--panel:#171d1b;--panel2:#1e2623;--line:#2d3934;--mint:#b9f6dc;--lime:#b7e66a;--red:#ff8d8d;--gold:#ffd166}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#22352d 0,#101313 40%);color:var(--ink);font-family:ui-rounded,"Avenir Next",system-ui,sans-serif;min-height:100vh}button,input{font:inherit}button{border:0;cursor:pointer}button:disabled{cursor:wait;opacity:.55}.hidden{display:none!important}.app{width:min(1180px,100%);margin:auto;padding:20px 16px 56px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0 26px}.brand{display:flex;align-items:center;gap:12px}.mark{width:44px;height:44px;border-radius:14px;background:var(--mint);color:#102019;display:grid;place-items:center;font-weight:950;font-size:20px;box-shadow:0 8px 30px #b9f6dc24}.brand-name{font-size:14px;letter-spacing:.17em;font-weight:900}.brand-meta{color:var(--muted);font-size:12px;margin-top:4px}.userbar{display:flex;align-items:center;gap:10px}.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#34443d;color:var(--mint);display:grid;place-items:center;font-weight:900}.ghost,.outline,.primary,.danger{border-radius:12px;padding:10px 13px;color:var(--ink)}.ghost{background:transparent}.outline{background:transparent;border:1px solid var(--line)}.primary{background:var(--mint);color:#102019;font-weight:900}.danger{background:#4b272b;color:#ffd0d0}.hero{border-bottom:1px solid var(--line);padding:18px 0 28px}.hero h1{font-size:clamp(42px,8vw,86px);line-height:.9;letter-spacing:-.07em;margin:0;max-width:760px}.hero p{color:var(--muted);max-width:560px;line-height:1.6;margin:20px 0 0}.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;margin-top:16px}.panel{background:#171d1be8;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 18px 50px #00000020}.panel h2{font-size:18px;margin:0 0 14px}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:12px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 7px}.code{font-size:25px;font-weight:950;letter-spacing:.12em;color:var(--mint)}.leader{display:flex;align-items:center;gap:11px;padding:12px;background:var(--panel2);border-radius:13px;margin:8px 0}.rank{width:28px;text-align:center;color:var(--gold);font-weight:900}.name{flex:1;font-weight:800}.score{font-size:18px;font-weight:950}.row{display:flex;gap:8px;flex-wrap:wrap}.field{width:100%;background:#111715;color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px;outline:none}.field:focus{border-color:var(--mint)}.row .field{flex:1;min-width:150px}.task{display:flex;align-items:center;gap:10px;padding:12px;background:var(--panel2);border-radius:13px;margin:8px 0}.task-text{flex:1;line-height:1.35}.points{font-weight:950;white-space:nowrap}.positive{color:var(--lime)}.negative{color:var(--red)}.task button{padding:9px 12px;border-radius:10px;background:#245b40;color:white;font-weight:900}.task button.negative-button{background:#713333}.history{max-height:350px;overflow:auto}.event{display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}.event .who{font-weight:900}.empty{color:var(--muted);padding:14px 0}.summary-list{display:grid;gap:8px}.summary-item{display:flex;justify-content:space-between;gap:12px;padding:12px;background:var(--panel2);border-radius:13px}.auth-screen,.lobby{min-height:calc(100vh - 40px);display:grid;place-items:center}.auth-box{width:min(480px,100%);padding:28px;border:1px solid var(--line);border-radius:22px;background:#171d1bf2;box-shadow:0 25px 80px #00000040}.auth-box h1{font-size:42px;letter-spacing:-.06em;margin:0}.auth-box p{color:var(--muted);line-height:1.5}.form{display:grid;gap:12px;margin-top:22px}.switch{color:var(--mint);background:none;padding:0;text-align:left}.notice{color:var(--red);font-size:13px;line-height:1.4}.lobby-box{width:min(720px,100%)}.lobby-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.group-card{padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;text-align:left}.group-card strong{display:block;font-size:17px}.group-card span{display:block;color:var(--muted);margin-top:6px}.pending{color:var(--gold)!important}@media(max-width:800px){.grid,.lobby-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.userbar{flex-wrap:wrap;justify-content:flex-end}.hero h1{font-size:54px}}
 </style>
+<style>
+	.app { padding-top: calc(8px + env(safe-area-inset-top)); }
+	.topbar { padding-top: 2px; padding-bottom: 12px; }
+	.hero { padding-top: 10px; padding-bottom: 18px; }
+	.profile-button { padding: 0; background: transparent; border-radius: 50%; }
+	.profile-button .avatar { border: 1px solid var(--line); }
+	@media (max-width: 800px) { .app { padding-top: calc(4px + env(safe-area-inset-top)); } .hero h1 { font-size: 48px; } }
+</style>
 </head>
 <body>
 <div id="authScreen" class="app auth-screen"><main class="auth-box"><div class="brand"><div class="mark">MR</div><div><div class="brand-name">MASTER RIZZLER</div><div class="brand-meta">Groups, challenges, points</div></div></div><h1 id="authTitle">Welcome back.</h1><p id="authCopy">Sign in to enter your groups and keep the score together.</p><form id="authForm" class="form"><input id="displayNameField" class="field hidden" name="displayName" placeholder="Display name" autocomplete="name"><input class="field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="field" name="password" type="password" placeholder="Password" minlength="6" autocomplete="current-password" required><input id="confirmField" class="field hidden" name="confirmPassword" type="password" placeholder="Confirm password" minlength="6"><button class="primary" type="submit" id="authSubmit">Sign in</button><button class="switch" type="button" id="authSwitch">Create an account</button><div id="authError" class="notice"></div></form></main></div>
@@ -38,6 +46,40 @@ async function editTask(taskId){const task=currentState.tasks.find(item=>item.id
 async function deleteTask(taskId){if(!confirm('Delete this task? Existing history stays.'))return;try{currentState=await api('/api/state?action=delete-task',{method:'DELETE',body:JSON.stringify({groupId:currentGroup,taskId})});renderGroup()}catch(error){alert(error.message)}}
 async function setRole(userId){const member=currentState.members.find(item=>item.user_id===userId);try{currentState=await api('/api/state?action=set-role',{method:'POST',body:JSON.stringify({groupId:currentGroup,userId,role:member.role==='admin'?'member':'admin'})});renderGroup()}catch(error){alert(error.message)}}
 authRender();if(token)loadLobby();else show('authScreen');
+</script>
+<script>
+	const originalGroupRender = renderGroup;
+	renderGroup = () => {
+		originalGroupRender();
+		const state = currentState;
+		const me = state.currentUser;
+		const activeMembers = state.members.filter(member => member.status === "active");
+		const isAdmin = ["owner", "admin"].includes(me.role);
+		const selectedPlayer = document.getElementById("selectedPlayer");
+		if (!isAdmin) selectedPlayer.innerHTML = `<option value="${me.user_id}">${me.profiles?.display_name || "You"}</option>`;
+		const groupMeta = document.getElementById("groupMeta");
+		const groupTitle = document.getElementById("groupTitle");
+		if (groupMeta && groupTitle && groupMeta.parentElement !== groupTitle.parentElement) groupTitle.after(groupMeta);
+		const hero = document.querySelector(".hero");
+		const tagline = hero?.querySelector("p:last-child");
+		if (tagline) tagline.remove();
+		if (hero && !document.getElementById("heroCopyCode")) {
+			const copy = document.createElement("button"); copy.id = "heroCopyCode"; copy.className = "outline"; copy.textContent = "Copy group code"; copy.onclick = copyGroupCode; hero.append(copy);
+		}
+		const groupButton = document.getElementById("changeGroup");
+		if (groupButton) { groupButton.textContent = ""; groupButton.title = "Profile and groups"; groupButton.setAttribute("aria-label", "Profile and groups"); groupButton.className = "profile-button"; groupButton.onclick = loadLobby; }
+		const userAvatar = document.getElementById("userAvatar");
+		const userInitials = document.getElementById("userInitials");
+		if (me.profiles?.avatar_url) { userAvatar.src = me.profiles.avatar_url; userAvatar.classList.remove("hidden"); userInitials.classList.add("hidden"); groupButton.appendChild(userAvatar); }
+		else { userInitials.textContent = initials(me.profiles?.display_name); userInitials.classList.remove("hidden"); groupButton.appendChild(userInitials); }
+		if (isAdmin) {
+			const rows = [...document.querySelectorAll("#leaderboard .leader")];
+			const ranked = [...activeMembers].sort((a, b) => (state.scores[b.user_id] || 0) - (state.scores[a.user_id] || 0));
+			rows.forEach((row, index) => { const member = ranked[index]; if (member && member.user_id !== me.user_id && member.role !== "owner") { const kick = document.createElement("button"); kick.className = "danger"; kick.textContent = "Remove"; kick.onclick = () => removeMember(member.user_id); row.append(kick); } });
+		}
+	};
+	async function copyGroupCode() { try { await navigator.clipboard.writeText(currentState.group.code); const button = document.getElementById("heroCopyCode"); button.textContent = "Code copied"; setTimeout(() => { button.textContent = "Copy group code"; }, 1600); } catch { alert("Copy failed. Group code: " + currentState.group.code); } }
+	async function removeMember(userId) { if (!confirm("Remove this player from the group?")) return; try { currentState = await api("/api/state?action=remove-member", { method: "DELETE", body: JSON.stringify({ groupId: currentGroup, userId }) }); renderGroup(); } catch (error) { alert(error.message); } }
 </script>
 </body>
 </html>
