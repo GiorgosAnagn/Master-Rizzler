@@ -18,8 +18,12 @@ const penalties = [
 ];
 
 function client() {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in Vercel environment variables.");
+  const missing = [
+    !process.env.SUPABASE_URL && "SUPABASE_URL",
+    !process.env.SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY"
+  ].filter(Boolean);
+  if (missing.length) {
+    throw new Error(`Missing ${missing.join(" and ")} in Vercel environment variables.`);
   }
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
