@@ -7,6 +7,19 @@ function supabase() {
   return createClient(url, key);
 }
 
+function authClient() {
+  const url = String(process.env.SUPABASE_URL || "").trim().replace(/^['"`]|['"`]$/g, "").replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+  const key = String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim().replace(/^['"`]|['"`]$/g, "");
+  if (!url || !key) throw new Error("Supabase authentication environment variables are missing in Vercel.");
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+function withTimeout(promise, milliseconds, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), milliseconds); });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 function body(request) {
   if (!request.body) return {};
   return typeof request.body === "string" ? JSON.parse(request.body) : request.body;
@@ -64,9 +77,14 @@ module.exports = async function handler(request, response) {
     if (request.method === "POST" && request.query?.action === "auth") {
       const { mode, email, password, displayName } = input;
       if (!email || !password) return fail(response, 400, "Email and password are required.");
-      const result = mode === "register"
-        ? await client.auth.signUp({ email, password, options: { data: { display_name: String(displayName || "Player").trim() } } })
-        : await client.auth.signInWithPassword({ email, password });
+      const auth = authClient();
+      const result = await withTimeout(
+        mode === "register"
+          ? auth.auth.signUp({ email, password, options: { data: { display_name: String(displayName || "Player").trim() } } })
+          : auth.auth.signInWithPassword({ email, password }),
+        10000,
+        "Supabase authentication timed out. Check the Supabase URL and auth key in Vercel."
+      );
       if (result.error) return fail(response, 401, result.error.message);
       if (mode === "register" && result.data.user && displayName) await client.from("profiles").update({ display_name: String(displayName).trim() }).eq("id", result.data.user.id);
       return response.status(200).json({ session: result.data.session, user: result.data.user });

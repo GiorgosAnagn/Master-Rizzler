@@ -15,6 +15,7 @@ Master Rizzler is a mobile-friendly group scoring app. Accounts use Supabase Aut
 Keep these in the Vercel project settings for Production and Preview:
 
 - `SUPABASE_URL`: the base project URL, such as `https://project-ref.supabase.co`
+- `SUPABASE_ANON_KEY`: the public anon or publishable key used for Supabase Auth
 - `SUPABASE_SERVICE_ROLE_KEY`: the server-only service role or secret key
 - `ADMIN_TOKEN`: legacy reset token; the new group workflow uses group roles
 
