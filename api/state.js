@@ -1,102 +1,176 @@
 const { createClient } = require("@supabase/supabase-js");
 
-const players = ["Παναοτ", "Νικ", "Κατσα", "Πλιοκας", "Τολης", "Θάνος"];
-const challenges = [
-  ["Να πας να μιλήσεις σε κοπέλα", 5], ["Να στείλεις μήνυμα σε κοπέλα", 3],
-  ["Να βγεις με κοπέλα", 20], ["Να κάνεις κάτι με κοπέλα", 25],
-  ["Να προχωρήσεις με κοπέλα", 50], ["Να πάρεις Instagram και να σε κάνει back", 10],
-  ["Να φτιάξεις τον φίλο σου με κοπέλα", 7], ["Να κανονίσεις βόλτα με κοπέλες (ακόμα και φίλες)", 5],
-  ["Να μπεις ΟΜΕ και να πάρεις Instagram (με back)", 2], ["Να κάνεις μια πρόκληση που συμφωνούν όλοι ότι αξίζει", 10],
-  ["Να κεράσεις σφηνάκια", 8], ["Να γνωρίσεις κοπέλα, ακόμα και σαν φίλη", 3],
-  ["Να σου στείλει κοπέλα", 5], ["Να κάνεις σχόλιο στο TikTok και να σου απαντήσει", 3],
-  ["Να μιλάς με κάποια για 1 εβδομάδα", 5]
-];
-const penalties = [
-  ["Όταν τρως άκυρο", -1], ["Όταν σου αρέσει κάποια και δεν πας να της μιλήσεις", -2],
-  ["Πας σε κοπέλα που σου είπε ότι άρεσε στον άλλον", -1], ["Όταν δεν σου απαντάει στο μήνυμα", -1],
-  ["Λες ψέματα ότι έκανες πρόκληση", -10]
-];
-
-function client() {
-  const supabaseUrl = String(process.env.SUPABASE_URL || "")
-    .trim()
-    .replace(/^['"`]|['"`]$/g, "")
-    .replace(/\/rest\/v1\/?$/, "")
-    .replace(/\/+$/, "");
-  const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "")
-    .trim()
-    .replace(/^['"`]|['"`]$/g, "");
-  const missing = [
-    !supabaseUrl && "SUPABASE_URL",
-    !serviceRoleKey && "SUPABASE_SERVICE_ROLE_KEY"
-  ].filter(Boolean);
-  if (missing.length) {
-    throw new Error(`Missing ${missing.join(" and ")} in Vercel environment variables.`);
-  }
-  let parsedUrl;
-  try { parsedUrl = new URL(supabaseUrl); } catch { parsedUrl = null; }
-  if (!parsedUrl || !["http:", "https:"].includes(parsedUrl.protocol)) {
-    throw new Error("SUPABASE_URL must be the Supabase Project URL, beginning with https:// and ending in .supabase.co.");
-  }
-  return createClient(supabaseUrl, serviceRoleKey);
+function supabase() {
+  const url = String(process.env.SUPABASE_URL || "").trim().replace(/^['"`]|['"`]$/g, "").replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+  const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim().replace(/^['"`]|['"`]$/g, "");
+  if (!url || !key) throw new Error("Supabase environment variables are missing in Vercel.");
+  return createClient(url, key);
 }
 
-async function getState() {
-  const supabase = client();
-  const [{ data: playerRows, error: playerError }, { data: events, error: eventError }] = await Promise.all([
-    supabase.from("players").select("name, avatar_url").order("created_at"),
-    supabase.from("point_events").select("player_name, action, points, created_at").order("created_at")
+function body(request) {
+  if (!request.body) return {};
+  return typeof request.body === "string" ? JSON.parse(request.body) : request.body;
+}
+
+async function userFromRequest(request, client) {
+  const header = request.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) return null;
+  const { data, error } = await client.auth.getUser(token);
+  if (error || !data.user) return null;
+  return data.user;
+}
+
+async function profile(client, user) {
+  const { data, error } = await client.from("profiles").select("id, display_name, avatar_url").eq("id", user.id).single();
+  if (error) throw error;
+  return data;
+}
+
+async function membership(client, groupId, userId, activeOnly = true) {
+  let query = client.from("group_members").select("group_id, user_id, role, status").eq("group_id", groupId).eq("user_id", userId);
+  if (activeOnly) query = query.eq("status", "active");
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function groupState(client, groupId, user) {
+  const member = await membership(client, groupId, user.id);
+  if (!member) throw Object.assign(new Error("You are not an active member of this group."), { status: 403 });
+  const [{ data: group, error: groupError }, { data: members, error: membersError }, { data: tasks, error: tasksError }, { data: events, error: eventsError }] = await Promise.all([
+    client.from("groups").select("id, name, code, owner_id").eq("id", groupId).single(),
+    client.from("group_members").select("user_id, role, status").eq("group_id", groupId),
+    client.from("group_tasks").select("id, description, points").eq("group_id", groupId).order("created_at"),
+    client.from("point_events").select("id, player_id, task_id, action, points, created_at").eq("group_id", groupId).order("created_at")
   ]);
-  if (playerError || eventError) throw playerError || eventError;
-
-  const scores = Object.fromEntries(players.map(name => [name, 0]));
-  const avatars = {};
-  playerRows.forEach(player => { scores[player.name] = 0; avatars[player.name] = player.avatar_url; });
-  events.forEach(event => { scores[event.player_name] = (scores[event.player_name] || 0) + event.points; });
-  return { scores, avatars, history: events.map(event => ({ player: event.player_name, action: event.action, points: event.points })) };
+  if (groupError || membersError || tasksError || eventsError) throw groupError || membersError || tasksError || eventsError;
+  const profileIds = [...new Set([...members.map(item => item.user_id), ...events.map(item => item.player_id)])];
+  const { data: profiles, error: profilesError } = await client.from("profiles").select("id, display_name, avatar_url").in("id", profileIds);
+  if (profilesError) throw profilesError;
+  const profileMap = Object.fromEntries(profiles.map(item => [item.id, item]));
+  members.forEach(item => { item.profiles = profileMap[item.user_id] || { id: item.user_id, display_name: "Player", avatar_url: null }; });
+  const scores = Object.fromEntries(members.filter(item => item.status === "active").map(item => [item.user_id, 0]));
+  events.forEach(event => { scores[event.player_id] = (scores[event.player_id] || 0) + event.points; });
+  return { group, currentUser: member, members, tasks, scores, history: events.map(event => ({ player: profileMap[event.player_id]?.display_name || "Player", action: event.action, points: event.points, created_at: event.created_at })) };
 }
+
+function fail(response, status, message) { return response.status(status).json({ error: message }); }
 
 module.exports = async function handler(request, response) {
+  const client = supabase();
   try {
-    if (request.method === "GET") return response.status(200).json(await getState());
-    const supabase = client();
-
-    if (request.method === "POST") {
-      const { player, type, index } = request.body || {};
-      const values = type === "challenge" ? challenges : type === "penalty" ? penalties : null;
-      if (!players.includes(player) || !values || !Number.isInteger(index) || index < 0 || index >= values.length) {
-        return response.status(400).json({ error: "Μη έγκυρη καταχώρηση." });
-      }
-      const { error } = await supabase.from("point_events").insert({
-        player_name: player,
-        action: values[index][0],
-        points: values[index][1]
-      });
-      if (error) throw error;
-      return response.status(200).json(await getState());
+    const input = body(request);
+    if (request.method === "POST" && request.query?.action === "auth") {
+      const { mode, email, password, displayName } = input;
+      if (!email || !password) return fail(response, 400, "Email and password are required.");
+      const result = mode === "register"
+        ? await client.auth.signUp({ email, password, options: { data: { display_name: String(displayName || "Player").trim() } } })
+        : await client.auth.signInWithPassword({ email, password });
+      if (result.error) return fail(response, 401, result.error.message);
+      if (mode === "register" && result.data.user && displayName) await client.from("profiles").update({ display_name: String(displayName).trim() }).eq("id", result.data.user.id);
+      return response.status(200).json({ session: result.data.session, user: result.data.user });
     }
 
-    if (request.method === "DELETE") {
-      if (!process.env.ADMIN_TOKEN || request.headers["x-admin-token"] !== process.env.ADMIN_TOKEN) {
-        return response.status(401).json({ error: "Μη εξουσιοδοτημένη ενέργεια." });
-      }
-      const { error } = await supabase.from("point_events").delete().not("id", "is", null);
+    const user = await userFromRequest(request, client);
+    if (!user) return fail(response, 401, "Please sign in first.");
+
+    if (request.method === "GET") {
+      const requestedGroup = String(request.query?.groupId || "");
+      const { data: memberships, error } = await client.from("group_members").select("group_id, role, status, groups(id, name, code, owner_id)").eq("user_id", user.id);
       if (error) throw error;
-      return response.status(200).json(await getState());
+      if (!requestedGroup) return response.status(200).json({ user: await profile(client, user), groups: memberships });
+      return response.status(200).json(await groupState(client, requestedGroup, user));
     }
 
-    return response.status(405).json({ error: "Method not allowed" });
+    if (request.method === "POST" && request.query?.action === "create-group") {
+      const name = String(input.name || "My Rizzler Group").trim();
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      const { data: group, error } = await client.from("groups").insert({ name, code, owner_id: user.id }).select().single();
+      if (error) throw error;
+      const { error: memberError } = await client.from("group_members").insert({ group_id: group.id, user_id: user.id, role: "owner", status: "active" });
+      if (memberError) throw memberError;
+      return response.status(200).json(await groupState(client, group.id, user));
+    }
+
+    if (request.method === "POST" && request.query?.action === "join-group") {
+      const code = String(input.code || "").replace(/\D/g, "").slice(0, 6);
+      const { data: group, error } = await client.from("groups").select("id").eq("code", code).single();
+      if (error || !group) return fail(response, 404, "Group code not found.");
+      const { error: joinError } = await client.from("group_members").upsert({ group_id: group.id, user_id: user.id, role: "member", status: "pending", invited_by: user.id }, { onConflict: "group_id,user_id" });
+      if (joinError) throw joinError;
+      return response.status(200).json({ message: "Join request sent to the group admins." });
+    }
+
+    if (request.method === "POST" && request.query?.action === "update-profile") {
+      const displayName = String(input.displayName || "").trim();
+      const avatarUrl = String(input.avatarUrl || "").trim() || null;
+      if (!displayName || displayName.length > 40) return fail(response, 400, "Display name must be 1 to 40 characters.");
+      if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) return fail(response, 400, "Profile picture must be an http(s) URL.");
+      const { error } = await client.from("profiles").update({ display_name: displayName, avatar_url: avatarUrl }).eq("id", user.id);
+      if (error) throw error;
+      return response.status(200).json({ user: await profile(client, user) });
+    }
+
+    const groupId = String(input.groupId || request.query?.groupId || "");
+    const me = await membership(client, groupId, user.id, false);
+    if (!me || (me.status !== "active" && request.query?.action !== "accept-member")) return fail(response, 403, "You do not have access to this group.");
+
+    if (request.method === "POST" && request.query?.action === "accept-member") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can accept members.");
+      const { userId } = input;
+      const { error } = await client.from("group_members").update({ status: "active" }).eq("group_id", groupId).eq("user_id", userId).eq("status", "pending");
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "POST" && request.query?.action === "add-task") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can manage tasks.");
+      const description = String(input.description || "").trim();
+      const points = Number(input.points);
+      if (!description || !Number.isInteger(points) || points === 0 || points < -1000 || points > 1000) return fail(response, 400, "Enter a description and a non-zero point value.");
+      const { error } = await client.from("group_tasks").insert({ group_id: groupId, description, points, created_by: user.id });
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "PATCH" && request.query?.action === "edit-task") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can manage tasks.");
+      const description = String(input.description || "").trim();
+      const points = Number(input.points);
+      if (!description || !Number.isInteger(points) || points === 0 || points < -1000 || points > 1000) return fail(response, 400, "Enter a description and a non-zero point value.");
+      const { error } = await client.from("group_tasks").update({ description, points }).eq("id", input.taskId).eq("group_id", groupId);
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "DELETE" && request.query?.action === "delete-task") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can manage tasks.");
+      const { error } = await client.from("group_tasks").delete().eq("id", input.taskId).eq("group_id", groupId);
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "POST" && request.query?.action === "set-role") {
+      if (me.role !== "owner") return fail(response, 403, "Only the group owner can assign admins.");
+      const role = input.role === "admin" ? "admin" : "member";
+      const { error } = await client.from("group_members").update({ role }).eq("group_id", groupId).eq("user_id", input.userId).eq("status", "active");
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "POST" && request.query?.action === "add-points") {
+      const { playerId, taskId } = input;
+      const { data: task, error: taskError } = await client.from("group_tasks").select("description, points").eq("id", taskId).eq("group_id", groupId).single();
+      if (taskError || !task) return fail(response, 404, "Task not found.");
+      const { error } = await client.from("point_events").insert({ group_id: groupId, player_id: playerId, task_id: taskId, action: task.description, points: task.points, created_by: user.id });
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    return fail(response, 405, "Method not allowed.");
   } catch (error) {
     console.error(error);
-    const message = error.message && (
-      error.message.startsWith("Missing ") ||
-      error.message.startsWith("SUPABASE_URL ") ||
-      error.message.includes("Supabase") ||
-      error.code ||
-      error.details
-    )
-      ? [error.message, error.code, error.details].filter(Boolean).join(" ")
-      : "Ο server δεν είναι διαθέσιμος. Check the Vercel function logs.";
-    return response.status(500).json({ error: message });
+    return fail(response, error.status || 500, error.message || "Server error.");
   }
 };

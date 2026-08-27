@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="el">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0b10">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#101313">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Master Rizzler">
@@ -11,213 +11,33 @@
 <link rel="apple-touch-icon" href="/icon.svg">
 <title>Master Rizzler</title>
 <style>
-  :root { --bg:#0b0b10; --card:#15151d; --card2:#1c1c27; --text:#f5f5f7; --muted:#a8a8b5; --accent:#8b5cf6; --green:#22c55e; --red:#ef4444; --gold:#fbbf24; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:radial-gradient(circle at top,#21153b 0,#0b0b10 45%); color:var(--text); min-height:100vh; }
-  .wrap { max-width:1100px; margin:auto; padding:24px 16px 50px; }
-  header { text-align:center; padding:20px 0 28px; }
-  h1 { margin:0; font-size:clamp(38px,8vw,72px); letter-spacing:-3px; }
-  .sub { color:var(--muted); margin-top:8px; }
-  .grid { display:grid; grid-template-columns:1fr; gap:16px; }
-  @media(min-width:850px){ .grid{grid-template-columns:1.1fr .9fr;} }
-  .card { background:rgba(21,21,29,.92); border:1px solid #2a2a36; border-radius:22px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.25); }
-  .card h2 { margin:0 0 14px; font-size:20px; }
-  .leader { display:flex; align-items:center; gap:12px; padding:12px; background:var(--card2); border-radius:15px; margin:8px 0; }
-  .avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; background:#38384a; display:grid; place-items:center; color:#fff; font-weight:800; flex:0 0 36px; }
-  .rank { width:34px; font-weight:800; color:var(--gold); text-align:center; }
-  .name { flex:1; font-weight:700; }
-  .score { font-weight:900; font-size:20px; }
-  .row { display:flex; gap:8px; flex-wrap:wrap; }
-  select, button { border:0; border-radius:12px; padding:11px 13px; font:inherit; }
-  select { background:#292936; color:white; flex:1; min-width:180px; }
-  button { cursor:pointer; background:var(--accent); color:white; font-weight:750; }
-  button:hover { filter:brightness(1.1); }
-  .danger { background:#3a171b; color:#ffb4b8; }
-  .challenge { display:flex; align-items:center; gap:10px; padding:12px; background:var(--card2); border-radius:14px; margin:8px 0; }
-  .challenge .txt { flex:1; }
-  .pts { font-weight:900; white-space:nowrap; }
-  .plus { background:#166534; }
-  .minus { background:#991b1b; }
-  .tabs { display:flex; gap:8px; margin-bottom:12px; }
-  .tab { background:#292936; color:#bbb; }
-  .tab.active { background:var(--accent); color:#fff; }
-  .history { max-height:350px; overflow:auto; }
-  .event { display:flex; gap:8px; padding:9px 0; border-bottom:1px solid #292936; font-size:14px; }
-  .event .who { font-weight:800; }
-  .positive { color:#4ade80; }
-  .negative { color:#f87171; }
-  .small { font-size:12px; color:var(--muted); }
-  .empty { color:var(--muted); padding:14px 0; }
-  .top-actions { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+:root{--ink:#edf5f0;--muted:#9aa9a2;--bg:#101313;--panel:#171d1b;--panel2:#1e2623;--line:#2d3934;--mint:#b9f6dc;--lime:#b7e66a;--red:#ff8d8d;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#22352d 0,#101313 40%);color:var(--ink);font-family:ui-rounded,"Avenir Next",system-ui,sans-serif;min-height:100vh}button,input{font:inherit}button{border:0;cursor:pointer}button:disabled{cursor:wait;opacity:.55}.hidden{display:none!important}.app{width:min(1180px,100%);margin:auto;padding:20px 16px 56px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0 26px}.brand{display:flex;align-items:center;gap:12px}.mark{width:44px;height:44px;border-radius:14px;background:var(--mint);color:#102019;display:grid;place-items:center;font-weight:950;font-size:20px;box-shadow:0 8px 30px #b9f6dc24}.brand-name{font-size:14px;letter-spacing:.17em;font-weight:900}.brand-meta{color:var(--muted);font-size:12px;margin-top:4px}.userbar{display:flex;align-items:center;gap:10px}.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#34443d;color:var(--mint);display:grid;place-items:center;font-weight:900}.ghost,.outline,.primary,.danger{border-radius:12px;padding:10px 13px;color:var(--ink)}.ghost{background:transparent}.outline{background:transparent;border:1px solid var(--line)}.primary{background:var(--mint);color:#102019;font-weight:900}.danger{background:#4b272b;color:#ffd0d0}.hero{border-bottom:1px solid var(--line);padding:18px 0 28px}.hero h1{font-size:clamp(42px,8vw,86px);line-height:.9;letter-spacing:-.07em;margin:0;max-width:760px}.hero p{color:var(--muted);max-width:560px;line-height:1.6;margin:20px 0 0}.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;margin-top:16px}.panel{background:#171d1be8;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 18px 50px #00000020}.panel h2{font-size:18px;margin:0 0 14px}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:12px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 7px}.code{font-size:25px;font-weight:950;letter-spacing:.12em;color:var(--mint)}.leader{display:flex;align-items:center;gap:11px;padding:12px;background:var(--panel2);border-radius:13px;margin:8px 0}.rank{width:28px;text-align:center;color:var(--gold);font-weight:900}.name{flex:1;font-weight:800}.score{font-size:18px;font-weight:950}.row{display:flex;gap:8px;flex-wrap:wrap}.field{width:100%;background:#111715;color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px;outline:none}.field:focus{border-color:var(--mint)}.row .field{flex:1;min-width:150px}.task{display:flex;align-items:center;gap:10px;padding:12px;background:var(--panel2);border-radius:13px;margin:8px 0}.task-text{flex:1;line-height:1.35}.points{font-weight:950;white-space:nowrap}.positive{color:var(--lime)}.negative{color:var(--red)}.task button{padding:9px 12px;border-radius:10px;background:#245b40;color:white;font-weight:900}.task button.negative-button{background:#713333}.history{max-height:350px;overflow:auto}.event{display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}.event .who{font-weight:900}.empty{color:var(--muted);padding:14px 0}.summary-list{display:grid;gap:8px}.summary-item{display:flex;justify-content:space-between;gap:12px;padding:12px;background:var(--panel2);border-radius:13px}.auth-screen,.lobby{min-height:calc(100vh - 40px);display:grid;place-items:center}.auth-box{width:min(480px,100%);padding:28px;border:1px solid var(--line);border-radius:22px;background:#171d1bf2;box-shadow:0 25px 80px #00000040}.auth-box h1{font-size:42px;letter-spacing:-.06em;margin:0}.auth-box p{color:var(--muted);line-height:1.5}.form{display:grid;gap:12px;margin-top:22px}.switch{color:var(--mint);background:none;padding:0;text-align:left}.notice{color:var(--red);font-size:13px;line-height:1.4}.lobby-box{width:min(720px,100%)}.lobby-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.group-card{padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;text-align:left}.group-card strong{display:block;font-size:17px}.group-card span{display:block;color:var(--muted);margin-top:6px}.pending{color:var(--gold)!important}@media(max-width:800px){.grid,.lobby-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.userbar{flex-wrap:wrap;justify-content:flex-end}.hero h1{font-size:54px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>MASTER RIZZLER</h1>
-    <div class="sub">6 players • Challenges • Penalties • One leaderboard</div>
-    <div class="top-actions">
-      <button onclick="exportData()">Export Score</button>
-      <button class="danger" onclick="resetGame()">Reset Game</button>
-    </div>
-  </header>
-
-  <div class="grid">
-    <section class="card">
-      <h2>🏆 Leaderboard</h2>
-      <div id="leaderboard"></div>
-    </section>
-
-    <section class="card">
-      <h2>⚡ Καταχώρηση πόντων</h2>
-      <div class="row">
-        <select id="player"></select>
-        <select id="actionType" onchange="renderActions()">
-          <option value="challenge">🏆 Challenge</option>
-          <option value="penalty">💀 Penalty</option>
-        </select>
-      </div>
-      <div id="actions"></div>
-    </section>
-
-    <section class="card">
-      <h2>📜 Ιστορικό</h2>
-      <div id="history" class="history"></div>
-    </section>
-
-    <section class="card">
-      <h2>📊 Σύνοψη</h2>
-      <div id="summary"></div>
-    </section>
-  </div>
-</div>
-
+<div id="authScreen" class="app auth-screen"><main class="auth-box"><div class="brand"><div class="mark">MR</div><div><div class="brand-name">MASTER RIZZLER</div><div class="brand-meta">Groups, challenges, points</div></div></div><h1 id="authTitle">Welcome back.</h1><p id="authCopy">Sign in to enter your groups and keep the score together.</p><form id="authForm" class="form"><input class="field" name="displayName" placeholder="Display name" autocomplete="name"><input class="field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="field" name="password" type="password" placeholder="Password" minlength="6" autocomplete="current-password" required><input id="confirmField" class="field hidden" name="confirmPassword" type="password" placeholder="Confirm password" minlength="6"><button class="primary" type="submit" id="authSubmit">Sign in</button><button class="switch" type="button" id="authSwitch">Create an account</button><div id="authError" class="notice"></div></form></main></div>
+<div id="lobbyScreen" class="app lobby hidden"><main class="lobby-box"><div class="topbar"><div class="brand"><div class="mark">MR</div><div><div class="brand-name">MASTER RIZZLER</div><div class="brand-meta">Your player space</div></div></div><button class="ghost" id="lobbyLogout">Log out</button></div><section class="panel"><p class="eyebrow">Your account</p><h1 id="lobbyGreeting">Choose a group.</h1><p id="lobbyProfile" class="brand-meta"></p><div class="row" style="margin-top:18px"><input id="groupName" class="field" placeholder="New group name"><button class="primary" id="createGroup">Create group</button></div><div class="row" style="margin-top:10px"><input id="joinCode" class="field" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit group code"><button class="outline" id="joinGroup">Request to join</button></div><div id="lobbyError" class="notice" style="margin-top:12px"></div><h2 style="margin-top:28px">Your groups</h2><div id="groups" class="lobby-grid"></div></section></main></div>
+<div id="appScreen" class="app hidden"><header class="topbar"><div class="brand"><div class="mark">MR</div><div><div class="brand-name">MASTER RIZZLER</div><div id="groupMeta" class="brand-meta"></div></div></div><div class="userbar"><img id="userAvatar" class="avatar hidden" alt=""><div id="userInitials" class="avatar"></div><button class="outline" id="changeGroup">Groups</button><button class="ghost" id="logout">Log out</button></div></header><section class="hero"><p class="eyebrow">Current group</p><h1 id="groupTitle">Master Rizzler</h1><p>One shared board for brave moves, sharp penalties, and a score that everyone can see.</p></section><div class="grid"><section class="panel"><div class="panel-head"><div><p class="eyebrow">Live standings</p><h2>Leaderboard</h2></div><button class="outline" id="copyCode">Copy code</button></div><div id="leaderboard"></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">Group toolkit</p><h2>Add points</h2></div></div><select id="selectedPlayer" class="field"></select><div id="tasks"></div><div id="adminTools" class="hidden"><h2 style="margin-top:24px">Manage tasks</h2><form id="taskForm" class="row"><input class="field" name="description" placeholder="Task or punishment description" required maxlength="200"><input class="field" name="points" type="number" placeholder="Points" required><button class="primary" type="submit">Add</button></form></div></section><section class="panel"><p class="eyebrow">The log</p><h2>History</h2><div id="history" class="history"></div></section><section class="panel"><p class="eyebrow">At a glance</p><h2>Summary</h2><div id="summary" class="summary-list"></div></section><section id="requestsPanel" class="panel hidden"><p class="eyebrow">Admin inbox</p><h2>Join requests</h2><div id="requests"></div></section></div></div>
 <script>
-const players = ["Παναοτ","Νικ","Κατσα","Πλιοκας","Τολης","Θάνος"];
-
-const challenges = [
-  ["Να πας να μιλήσεις σε κοπέλα",5],
-  ["Να στείλεις μήνυμα σε κοπέλα",3],
-  ["Να βγεις με κοπέλα",20],
-  ["Να κάνεις κάτι με κοπέλα",25],
-  ["Να προχωρήσεις με κοπέλα",50],
-  ["Να πάρεις Instagram και να σε κάνει back",10],
-  ["Να φτιάξεις τον φίλο σου με κοπέλα",7],
-  ["Να κανονίσεις βόλτα με κοπέλες (ακόμα και φίλες)",5],
-  ["Να μπεις ΟΜΕ και να πάρεις Instagram (με back)",2],
-  ["Να κάνεις μια πρόκληση που συμφωνούν όλοι ότι αξίζει",10],
-  ["Να κεράσεις σφηνάκια",8],
-  ["Να γνωρίσεις κοπέλα, ακόμα και σαν φίλη",3],
-  ["Να σου στείλει κοπέλα",5],
-  ["Να κάνεις σχόλιο στο TikTok και να σου απαντήσει",3],
-  ["Να μιλάς με κάποια για 1 εβδομάδα",5]
-];
-
-const penalties = [
-  ["Όταν τρως άκυρο",-1],
-  ["Όταν σου αρέσει κάποια και δεν πας να της μιλήσεις",-2],
-  ["Πας σε κοπέλα που σου είπε ότι άρεσε στον άλλον",-1],
-  ["Όταν δεν σου απαντάει στο μήνυμα",-1],
-  ["Λες ψέματα ότι έκανες πρόκληση",-10]
-];
-
-let state = {
-  scores: Object.fromEntries(players.map(p=>[p,0])),
-  history:[],
-  avatars: {}
-};
-let loading = true;
-
-function initials(name){ return name.trim().slice(0,2).toUpperCase(); }
-
-async function requestState(options){
-  const response = await fetch("/api/state", {headers:{"content-type":"application/json"}, ...options});
-  if(!response.ok) throw new Error(await response.text() || "Η σύνδεση με τον server απέτυχε.");
-  return response.json();
-}
-
-async function loadState(){
-  try {
-    state = await requestState({method:"GET"});
-    render();
-  } catch(error) {
-    document.getElementById("leaderboard").innerHTML = `<div class="empty">Δεν ήταν δυνατή η φόρτωση των σκορ. ${error.message}</div>`;
-  } finally {
-    loading = false;
-  }
-}
-
-function render(){
-  const sorted = [...players].sort((a,b)=>state.scores[b]-state.scores[a]);
-  document.getElementById("leaderboard").innerHTML = sorted.map((p,i)=>`
-    <div class="leader">
-      <div class="rank">${i===0?"👑":i+1}</div>
-      ${state.avatars?.[p] ? `<img class="avatar" src="${state.avatars[p]}" alt="${p}">` : `<div class="avatar">${initials(p)}</div>`}
-      <div class="name">${p}</div>
-      <div class="score">${state.scores[p]} πόντοι</div>
-    </div>`).join("");
-
-  document.getElementById("player").innerHTML = players.map(p=>`<option>${p}</option>`).join("");
-  renderActions();
-
-  const hist = document.getElementById("history");
-  hist.innerHTML = state.history.length ? state.history.slice().reverse().map(e=>`
-    <div class="event">
-      <span class="who">${e.player}</span>
-      <span>${e.action}</span>
-      <strong class="${e.points>=0?'positive':'negative'}">${e.points>0?'+':''}${e.points}</strong>
-    </div>`).join("") : '<div class="empty">Δεν έχει καταχωρηθεί ακόμα τίποτα.</div>';
-
-  const total = players.reduce((s,p)=>s+state.scores[p],0);
-  const leader = sorted[0];
-  document.getElementById("summary").innerHTML = `
-    <div class="challenge"><span class="txt">🥇 Πρώτος</span><b>${leader}</b><span class="pts">${state.scores[leader]} πόντοι</span></div>
-    <div class="challenge"><span class="txt">👥 Παίκτες</span><b>${players.length}</b></div>
-    <div class="challenge"><span class="txt">📝 Καταχωρήσεις</span><b>${state.history.length}</b></div>
-    <div class="challenge"><span class="txt">⭐ Συνολικοί πόντοι</span><b>${total} πόντοι</b></div>`;
-}
-
-function renderActions(){
-  const type = document.getElementById("actionType").value;
-  const list = type==="challenge" ? challenges : penalties;
-  document.getElementById("actions").innerHTML = list.map((a,i)=>`
-    <div class="challenge">
-      <div class="txt"><b>${i+1}.</b> ${a[0]}</div>
-      <span class="pts">${a[1]>0?'+':''}${a[1]}</span>
-      <button class="${a[1]<0?'minus':'plus'}" onclick="addPoints(${i},'${type}')">${type==='challenge'?'+' : '−'}</button>
-    </div>`).join("");
-}
-
-async function addPoints(index,type){
-  if(loading) return;
-  const player=document.getElementById("player").value;
-  const item=(type==="challenge"?challenges:penalties)[index];
-  try {
-    state = await requestState({method:"POST", body:JSON.stringify({player, type, index})});
-    render();
-  } catch(error) { alert(error.message); }
-}
-
-async function resetGame(){
-  if(!confirm("Θέλετε σίγουρα να μηδενίσουν όλα τα σκορ και το ιστορικό;")) return;
-  try {
-    const token = prompt("Admin token:");
-    if(!token) return;
-    state = await requestState({method:"DELETE", headers:{"x-admin-token":token}});
-    render();
-  } catch(error) { alert(error.message); }
-}
-
-function exportData(){
-  const text = players.map(p=>`${p}: ${state.scores[p]} πόντοι`).join("\\n");
-  const blob = new Blob([text],{type:"text/plain"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="master-rizzler-score.txt"; a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-render();
-loadState();
+const $=id=>document.getElementById(id);let token=localStorage.getItem("rizzlerToken");let currentGroup=null;let authMode="login";let currentState=null;
+async function api(path,options={}){const headers={"content-type":"application/json",...(token?{authorization:`Bearer ${token}`}:{})};const res=await fetch(path,{...options,headers:{...headers,...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"Something went wrong.");return data}
+function initials(name){return (name||"P").trim().slice(0,2).toUpperCase()}
+function show(which){["authScreen","lobbyScreen","appScreen"].forEach(id=>$(id).classList.toggle("hidden",id!==which))}
+function authRender(){const register=authMode==="register";$('authTitle').textContent=register?"Make your mark.":"Welcome back.";$('authCopy').textContent=register?"Create your player identity, then join or start a group.":"Sign in to enter your groups and keep the score together.";$('authSubmit').textContent=register?"Create account":"Sign in";$('authSwitch').textContent=register?"Already have an account? Sign in":"Create an account";$('confirmField').classList.toggle("hidden",!register);$('authError').textContent=""}
+async function authSubmit(event){event.preventDefault();const data=Object.fromEntries(new FormData(event.target));if(authMode==="register"&&data.password!==data.confirmPassword){$('authError').textContent="Passwords do not match.";return}try{const result=await api("/api/state?action=auth",{method:"POST",body:JSON.stringify({mode:authMode,email:data.email,password:data.password,displayName:data.displayName})});if(!result.session){$('authError').textContent="Check your email to confirm your account.";return}token=result.session.access_token;localStorage.setItem("rizzlerToken",token);await loadLobby()}catch(error){$('authError').textContent=error.message}}
+async function loadLobby(){try{const data=await api("/api/state");$('lobbyGreeting').textContent=`Hi, ${data.user.display_name}.`;$('lobbyProfile').textContent=data.user.email;const groups=$('groups');groups.innerHTML=data.groups.length?data.groups.map(item=>{const group=item.groups;const pending=item.status==="pending";return `<button class="group-card" data-group="${pending?"":group.id}" ${pending?"disabled":""}><strong>${group.name}</strong><span class="${pending?"pending":""}">${group.code} · ${item.role}${pending?" · Pending admin approval":""}</span></button>`}).join(""):"<div class='empty'>Create a group or request to join one above.</div>";groups.querySelectorAll("[data-group]").forEach(button=>button.onclick=()=>loadGroup(button.dataset.group));show("lobbyScreen")}catch(error){localStorage.removeItem("rizzlerToken");token=null;show("authScreen");$('authError').textContent=error.message}}
+async function loadGroup(groupId){try{currentGroup=groupId;currentState=await api(`/api/state?groupId=${encodeURIComponent(groupId)}`);renderGroup();show("appScreen")}catch(error){$('lobbyError').textContent=error.message}}
+function renderGroup(){const s=currentState;const me=s.members.find(m=>m.user_id===s.currentUser.user_id);$('groupTitle').textContent=s.group.name;$('groupMeta').textContent=`Code ${s.group.code} · ${s.members.filter(m=>m.status==="active").length} active players`;$('selectedPlayer').innerHTML=s.members.filter(m=>m.status==="active").map(m=>`<option value="${m.user_id}">${m.profiles.display_name}</option>`).join("");const sorted=[...s.members.filter(m=>m.status==="active")].sort((a,b)=>(s.scores[b.user_id]||0)-(s.scores[a.user_id]||0));$('leaderboard').innerHTML=sorted.map((m,i)=>`<div class="leader"><div class="rank">${i===0?"★":i+1}</div>${m.profiles.avatar_url?`<img class="avatar" src="${m.profiles.avatar_url}" alt="">`:`<div class="avatar">${initials(m.profiles.display_name)}</div>`}<div class="name">${m.profiles.display_name}</div><div class="score">${s.scores[m.user_id]||0} pts</div></div>`).join("");$('tasks').innerHTML=s.tasks.length?s.tasks.map(task=>`<div class="task"><div class="task-text">${task.description}</div><span class="points ${task.points<0?"negative":"positive"}">${task.points>0?"+":""}${task.points}</span><button class="${task.points<0?"negative-button":""}" data-task="${task.id}">Add</button></div>`).join(""):"<div class='empty'>No tasks yet. Group admins can add the first one below.</div>";$('tasks').querySelectorAll("[data-task]").forEach(button=>button.onclick=()=>addPoints(button.dataset.task));$('adminTools').classList.toggle("hidden",!['owner','admin'].includes(me.role));const requests=s.members.filter(m=>m.status==="pending");$('requestsPanel').classList.toggle("hidden",!['owner','admin'].includes(me.role));$('requests').innerHTML=requests.length?requests.map(m=>`<div class="task"><div class="task-text">${m.profiles.display_name}<span class="small">Pending request</span></div><button data-accept="${m.user_id}">Accept</button></div>`).join(""):"<div class='empty'>No pending requests.</div>";$('requests').querySelectorAll("[data-accept]").forEach(button=>button.onclick=()=>acceptMember(button.dataset.accept));const total=Object.values(s.scores).reduce((a,b)=>a+b,0);$('summary').innerHTML=`<div class="summary-item"><span>Leader</span><b>${sorted[0]?.profiles.display_name||"-"} · ${s.scores[sorted[0]?.user_id]||0} pts</b></div><div class="summary-item"><span>Players</span><b>${sorted.length}</b></div><div class="summary-item"><span>Entries</span><b>${s.history.length}</b></div><div class="summary-item"><span>Total points</span><b>${total} pts</b></div>`;$('history').innerHTML=s.history.length?s.history.slice().reverse().map(e=>`<div class="event"><span class="who">${e.player}</span><span>${e.action}</span><strong class="${e.points<0?"negative":"positive"}">${e.points>0?"+":""}${e.points}</strong></div>`).join(""):"<div class='empty'>No entries yet.</div>"}
+async function addPoints(taskId){try{currentState=await api("/api/state?action=add-points",{method:"POST",body:JSON.stringify({groupId:currentGroup,taskId,playerId:$('selectedPlayer').value})});renderGroup()}catch(error){alert(error.message)}}
+async function acceptMember(userId){try{currentState=await api("/api/state?action=accept-member",{method:"POST",body:JSON.stringify({groupId:currentGroup,userId})});renderGroup()}catch(error){alert(error.message)}}
+$('authForm').onsubmit=authSubmit;$('authSwitch').onclick=()=>{authMode=authMode==="login"?"register":"login";authRender()};$('createGroup').onclick=async()=>{try{currentState=await api("/api/state?action=create-group",{method:"POST",body:JSON.stringify({name:$('groupName').value})});currentGroup=currentState.group.id;renderGroup();show("appScreen")}catch(error){$('lobbyError').textContent=error.message}};$('joinGroup').onclick=async()=>{try{await api("/api/state?action=join-group",{method:"POST",body:JSON.stringify({code:$('joinCode').value})});$('lobbyError').textContent="Request sent. An admin must accept you.";await loadLobby()}catch(error){$('lobbyError').textContent=error.message}};$('taskForm').onsubmit=async event=>{event.preventDefault();const data=Object.fromEntries(new FormData(event.target));try{currentState=await api("/api/state?action=add-task",{method:"POST",body:JSON.stringify({groupId:currentGroup,description:data.description,points:Number(data.points)})});event.target.reset();renderGroup()}catch(error){alert(error.message)}};$('logout').onclick=$('lobbyLogout').onclick=()=>{localStorage.removeItem("rizzlerToken");token=null;show("authScreen");authRender()};$('changeGroup').onclick=loadLobby;$('copyCode').onclick=()=>navigator.clipboard?.writeText(currentState.group.code);
+const originalLoadLobby=loadLobby;loadLobby=async()=>{await originalLoadLobby();if(!$('profileForm')){const form=document.createElement('form');form.id='profileForm';form.className='row';form.style.marginTop='18px';form.innerHTML='<input id="profileName" name="displayName" class="field" placeholder="Display name" required maxlength="40"><input id="profileAvatar" name="avatarUrl" class="field" placeholder="Profile picture URL (optional)"><button class="outline" type="submit">Save profile</button>';$('lobbyProfile').after(form);form.onsubmit=async event=>{event.preventDefault();const values=Object.fromEntries(new FormData(form));try{const updated=await api("/api/state?action=update-profile",{method:"POST",body:JSON.stringify(values)});$('lobbyGreeting').textContent=`Hi, ${updated.user.display_name}.`;$('lobbyError').textContent="Profile saved."}catch(error){$('lobbyError').textContent=error.message}}}}
+const originalRenderGroup=renderGroup;renderGroup=()=>{originalRenderGroup();const s=currentState;const me=s.currentUser;const active=s.members.filter(item=>item.status==='active');if(['owner','admin'].includes(me.role)){$('tasks').querySelectorAll('[data-task]').forEach(button=>{const task=button.parentElement;const edit=document.createElement('button');edit.className='outline';edit.textContent='Edit';edit.onclick=()=>editTask(button.dataset.task);const remove=document.createElement('button');remove.className='danger';remove.textContent='×';remove.onclick=()=>deleteTask(button.dataset.task);task.append(edit,remove)});$('requests').querySelectorAll('[data-accept]').forEach(button=>button.closest('.task').dataset.request=button.dataset.accept)}if(me.role==='owner'){$('leaderboard').querySelectorAll('.leader').forEach((row,index)=>{const member=active.slice().sort((a,b)=>(s.scores[b.user_id]||0)-(s.scores[a.user_id]||0))[index];if(member.user_id!==me.user_id){const role=document.createElement('button');role.className='ghost';role.textContent=member.role==='admin'?'Remove admin':'Make admin';role.onclick=()=>setRole(member.user_id);row.append(role)}})}}
+async function editTask(taskId){const task=currentState.tasks.find(item=>item.id===taskId);const description=prompt('Task description',task.description);if(description===null)return;const points=prompt('Points',task.points);if(points===null)return;try{currentState=await api('/api/state?action=edit-task',{method:'PATCH',body:JSON.stringify({groupId:currentGroup,taskId,description,points:Number(points)})});renderGroup()}catch(error){alert(error.message)}}
+async function deleteTask(taskId){if(!confirm('Delete this task? Existing history stays.'))return;try{currentState=await api('/api/state?action=delete-task',{method:'DELETE',body:JSON.stringify({groupId:currentGroup,taskId})});renderGroup()}catch(error){alert(error.message)}}
+async function setRole(userId){const member=currentState.members.find(item=>item.user_id===userId);try{currentState=await api('/api/state?action=set-role',{method:'POST',body:JSON.stringify({groupId:currentGroup,userId,role:member.role==='admin'?'member':'admin'})});renderGroup()}catch(error){alert(error.message)}}
+authRender();if(token)loadLobby();else show('authScreen');
 </script>
 </body>
 </html>
