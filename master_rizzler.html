@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0b10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Master Rizzler">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.svg">
+<title>Master Rizzler</title>
+<style>
+  :root { --bg:#0b0b10; --card:#15151d; --card2:#1c1c27; --text:#f5f5f7; --muted:#a8a8b5; --accent:#8b5cf6; --green:#22c55e; --red:#ef4444; --gold:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:radial-gradient(circle at top,#21153b 0,#0b0b10 45%); color:var(--text); min-height:100vh; }
+  .wrap { max-width:1100px; margin:auto; padding:24px 16px 50px; }
+  header { text-align:center; padding:20px 0 28px; }
+  h1 { margin:0; font-size:clamp(38px,8vw,72px); letter-spacing:-3px; }
+  .sub { color:var(--muted); margin-top:8px; }
+  .grid { display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:850px){ .grid{grid-template-columns:1.1fr .9fr;} }
+  .card { background:rgba(21,21,29,.92); border:1px solid #2a2a36; border-radius:22px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.25); }
+  .card h2 { margin:0 0 14px; font-size:20px; }
+  .leader { display:flex; align-items:center; gap:12px; padding:12px; background:var(--card2); border-radius:15px; margin:8px 0; }
+  .avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; background:#38384a; display:grid; place-items:center; color:#fff; font-weight:800; flex:0 0 36px; }
+  .rank { width:34px; font-weight:800; color:var(--gold); text-align:center; }
+  .name { flex:1; font-weight:700; }
+  .score { font-weight:900; font-size:20px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  select, button { border:0; border-radius:12px; padding:11px 13px; font:inherit; }
+  select { background:#292936; color:white; flex:1; min-width:180px; }
+  button { cursor:pointer; background:var(--accent); color:white; font-weight:750; }
+  button:hover { filter:brightness(1.1); }
+  .danger { background:#3a171b; color:#ffb4b8; }
+  .challenge { display:flex; align-items:center; gap:10px; padding:12px; background:var(--card2); border-radius:14px; margin:8px 0; }
+  .challenge .txt { flex:1; }
+  .pts { font-weight:900; white-space:nowrap; }
+  .plus { background:#166534; }
+  .minus { background:#991b1b; }
+  .tabs { display:flex; gap:8px; margin-bottom:12px; }
+  .tab { background:#292936; color:#bbb; }
+  .tab.active { background:var(--accent); color:#fff; }
+  .history { max-height:350px; overflow:auto; }
+  .event { display:flex; gap:8px; padding:9px 0; border-bottom:1px solid #292936; font-size:14px; }
+  .event .who { font-weight:800; }
+  .positive { color:#4ade80; }
+  .negative { color:#f87171; }
+  .small { font-size:12px; color:var(--muted); }
+  .empty { color:var(--muted); padding:14px 0; }
+  .top-actions { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MASTER RIZZLER</h1>
+    <div class="sub">6 players • Challenges • Penalties • One leaderboard</div>
+    <div class="top-actions">
+      <button onclick="exportData()">Export Score</button>
+      <button class="danger" onclick="resetGame()">Reset Game</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>🏆 Leaderboard</h2>
+      <div id="leaderboard"></div>
+    </section>
+
+    <section class="card">
+      <h2>⚡ Καταχώρηση πόντων</h2>
+      <div class="row">
+        <select id="player"></select>
+        <select id="actionType" onchange="renderActions()">
+          <option value="challenge">🏆 Challenge</option>
+          <option value="penalty">💀 Penalty</option>
+        </select>
+      </div>
+      <div id="actions"></div>
+    </section>
+
+    <section class="card">
+      <h2>📜 Ιστορικό</h2>
+      <div id="history" class="history"></div>
+    </section>
+
+    <section class="card">
+      <h2>📊 Σύνοψη</h2>
+      <div id="summary"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const players = ["Παναοτ","Νικ","Κατσα","Πλιοκας","Τολης","Θάνος"];
+
+const challenges = [
+  ["Να πας να μιλήσεις σε κοπέλα",5],
+  ["Να στείλεις μήνυμα σε κοπέλα",3],
+  ["Να βγεις με κοπέλα",20],
+  ["Να κάνεις κάτι με κοπέλα",25],
+  ["Να προχωρήσεις με κοπέλα",50],
+  ["Να πάρεις Instagram και να σε κάνει back",10],
+  ["Να φτιάξεις τον φίλο σου με κοπέλα",7],
+  ["Να κανονίσεις βόλτα με κοπέλες (ακόμα και φίλες)",5],
+  ["Να μπεις ΟΜΕ και να πάρεις Instagram (με back)",2],
+  ["Να κάνεις μια πρόκληση που συμφωνούν όλοι ότι αξίζει",10],
+  ["Να κεράσεις σφηνάκια",8],
+  ["Να γνωρίσεις κοπέλα, ακόμα και σαν φίλη",3],
+  ["Να σου στείλει κοπέλα",5],
+  ["Να κάνεις σχόλιο στο TikTok και να σου απαντήσει",3],
+  ["Να μιλάς με κάποια για 1 εβδομάδα",5]
+];
+
+const penalties = [
+  ["Όταν τρως άκυρο",-1],
+  ["Όταν σου αρέσει κάποια και δεν πας να της μιλήσεις",-2],
+  ["Πας σε κοπέλα που σου είπε ότι άρεσε στον άλλον",-1],
+  ["Όταν δεν σου απαντάει στο μήνυμα",-1],
+  ["Λες ψέματα ότι έκανες πρόκληση",-10]
+];
+
+let state = {
+  scores: Object.fromEntries(players.map(p=>[p,0])),
+  history:[],
+  avatars: {}
+};
+let loading = true;
+
+function initials(name){ return name.trim().slice(0,2).toUpperCase(); }
+
+async function requestState(options){
+  const response = await fetch("/api/state", {headers:{"content-type":"application/json"}, ...options});
+  if(!response.ok) throw new Error(await response.text() || "Η σύνδεση με τον server απέτυχε.");
+  return response.json();
+}
+
+async function loadState(){
+  try {
+    state = await requestState({method:"GET"});
+    render();
+  } catch(error) {
+    document.getElementById("leaderboard").innerHTML = `<div class="empty">Δεν ήταν δυνατή η φόρτωση των σκορ. ${error.message}</div>`;
+  } finally {
+    loading = false;
+  }
+}
+
+function render(){
+  const sorted = [...players].sort((a,b)=>state.scores[b]-state.scores[a]);
+  document.getElementById("leaderboard").innerHTML = sorted.map((p,i)=>`
+    <div class="leader">
+      <div class="rank">${i===0?"👑":i+1}</div>
+      ${state.avatars?.[p] ? `<img class="avatar" src="${state.avatars[p]}" alt="${p}">` : `<div class="avatar">${initials(p)}</div>`}
+      <div class="name">${p}</div>
+      <div class="score">${state.scores[p]} πόντοι</div>
+    </div>`).join("");
+
+  document.getElementById("player").innerHTML = players.map(p=>`<option>${p}</option>`).join("");
+  renderActions();
+
+  const hist = document.getElementById("history");
+  hist.innerHTML = state.history.length ? state.history.slice().reverse().map(e=>`
+    <div class="event">
+      <span class="who">${e.player}</span>
+      <span>${e.action}</span>
+      <strong class="${e.points>=0?'positive':'negative'}">${e.points>0?'+':''}${e.points}</strong>
+    </div>`).join("") : '<div class="empty">Δεν έχει καταχωρηθεί ακόμα τίποτα.</div>';
+
+  const total = players.reduce((s,p)=>s+state.scores[p],0);
+  const leader = sorted[0];
+  document.getElementById("summary").innerHTML = `
+    <div class="challenge"><span class="txt">🥇 Πρώτος</span><b>${leader}</b><span class="pts">${state.scores[leader]} πόντοι</span></div>
+    <div class="challenge"><span class="txt">👥 Παίκτες</span><b>${players.length}</b></div>
+    <div class="challenge"><span class="txt">📝 Καταχωρήσεις</span><b>${state.history.length}</b></div>
+    <div class="challenge"><span class="txt">⭐ Συνολικοί πόντοι</span><b>${total} πόντοι</b></div>`;
+}
+
+function renderActions(){
+  const type = document.getElementById("actionType").value;
+  const list = type==="challenge" ? challenges : penalties;
+  document.getElementById("actions").innerHTML = list.map((a,i)=>`
+    <div class="challenge">
+      <div class="txt"><b>${i+1}.</b> ${a[0]}</div>
+      <span class="pts">${a[1]>0?'+':''}${a[1]}</span>
+      <button class="${a[1]<0?'minus':'plus'}" onclick="addPoints(${i},'${type}')">${type==='challenge'?'+' : '−'}</button>
+    </div>`).join("");
+}
+
+async function addPoints(index,type){
+  if(loading) return;
+  const player=document.getElementById("player").value;
+  const item=(type==="challenge"?challenges:penalties)[index];
+  try {
+    state = await requestState({method:"POST", body:JSON.stringify({player, type, index})});
+    render();
+  } catch(error) { alert(error.message); }
+}
+
+async function resetGame(){
+  if(!confirm("Θέλετε σίγουρα να μηδενίσουν όλα τα σκορ και το ιστορικό;")) return;
+  try {
+    const token = prompt("Admin token:");
+    if(!token) return;
+    state = await requestState({method:"DELETE", headers:{"x-admin-token":token}});
+    render();
+  } catch(error) { alert(error.message); }
+}
+
+function exportData(){
+  const text = players.map(p=>`${p}: ${state.scores[p]} πόντοι`).join("\\n");
+  const blob = new Blob([text],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="master-rizzler-score.txt"; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+render();
+loadState();
+</script>
+</body>
+</html>
