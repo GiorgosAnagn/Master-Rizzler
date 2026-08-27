@@ -29,9 +29,10 @@ Vercel is connected to the GitHub repository. The repository root is the project
 
 1. A visitor sees the account gate and registers or signs in.
 2. A player creates a group or enters a six-digit code to request membership.
-3. The group owner accepts pending requests and can promote active members to admins.
-4. Owners and admins add tasks or punishments using one description and one signed point value. They can edit or delete rules; existing history remains unchanged.
-5. Any active member selects the player who completed a rule and adds the event. The leaderboard, history, and summary update from the server.
+4. The group owner accepts pending requests and can promote active members to admins.
+5. Owners and admins add tasks or punishments using one description and one signed point value. They can edit or delete rules; existing history remains unchanged.
+6. Any active member selects the player who completed a rule and adds the event. The leaderboard, history, and summary update from the server.
+7. Owners and admins can delete an accidental history entry. The event is removed and the leaderboard is recalculated from the remaining events for every group member.
 
 ## Profile pictures
 

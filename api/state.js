@@ -65,7 +65,7 @@ async function groupState(client, groupId, user) {
   members.forEach(item => { item.profiles = profileMap[item.user_id] || { id: item.user_id, display_name: "Player", avatar_url: null }; });
   const scores = Object.fromEntries(members.filter(item => item.status === "active").map(item => [item.user_id, 0]));
   events.forEach(event => { scores[event.player_id] = (scores[event.player_id] || 0) + event.points; });
-  return { group, currentUser: member, members, tasks, scores, history: events.map(event => ({ player: profileMap[event.player_id]?.display_name || "Player", action: event.action, points: event.points, created_at: event.created_at })) };
+  return { group, currentUser: member, members, tasks, scores, history: events.map(event => ({ id: event.id, player: profileMap[event.player_id]?.display_name || "Player", action: event.action, points: event.points, created_at: event.created_at })) };
 }
 
 function fail(response, status, message) { return response.status(status).json({ error: message }); }
@@ -76,6 +76,18 @@ module.exports = async function handler(request, response) {
     const input = body(request);
     if (request.method === "POST" && request.query?.action === "auth") {
       const { mode, email, password, displayName } = input;
+      if (mode === "reset") {
+        if (!email) return fail(response, 400, "Enter your email address first.");
+        const auth = authClient();
+        const redirectTo = String(input.redirectTo || "");
+        const result = await withTimeout(
+          auth.auth.resetPasswordForEmail(email, redirectTo ? { redirectTo } : undefined),
+          10000,
+          "Supabase password reset timed out."
+        );
+        if (result.error) return fail(response, 400, result.error.message);
+        return response.status(200).json({ message: "If that email exists, a reset link has been sent." });
+      }
       if (!email || !password) return fail(response, 400, "Email and password are required.");
       const auth = authClient();
       const result = await withTimeout(
@@ -185,6 +197,16 @@ module.exports = async function handler(request, response) {
       const target = await membership(client, groupId, input.userId, false);
       if (!target || target.role === "owner") return fail(response, 400, "That member cannot be removed.");
       const { error } = await client.from("group_members").delete().eq("group_id", groupId).eq("user_id", input.userId);
+      if (error) throw error;
+      return response.status(200).json(await groupState(client, groupId, user));
+    }
+
+    if (request.method === "DELETE" && request.query?.action === "delete-event") {
+      if (!['owner', 'admin'].includes(me.role)) return fail(response, 403, "Only group admins can delete history entries.");
+      const { data: event, error: eventError } = await client.from("point_events").select("id").eq("id", input.eventId).eq("group_id", groupId).maybeSingle();
+      if (eventError) throw eventError;
+      if (!event) return fail(response, 404, "History entry not found.");
+      const { error } = await client.from("point_events").delete().eq("id", input.eventId).eq("group_id", groupId);
       if (error) throw error;
       return response.status(200).json(await groupState(client, groupId, user));
     }

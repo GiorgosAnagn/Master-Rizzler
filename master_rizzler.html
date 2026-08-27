@@ -26,11 +26,17 @@
 	.hero { padding-top: 10px; padding-bottom: 18px; }
 	.profile-button { padding: 0; background: transparent; border-radius: 50%; }
 	.profile-button .avatar { border: 1px solid var(--line); }
+	#copyCode { display: none; }
+	.userbar #changeGroup { width: 42px; min-width: 42px; height: 42px; padding: 0; border-radius: 50%; font-size: 0; display: grid; place-items: center; }
+	.userbar #changeGroup .avatar { font-size: 16px; }
 	.leader { position: relative; flex-wrap: wrap; }
 	.player-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 0; font-weight: 800; }
 	.player-actions { display: none; width: 100%; gap: 8px; padding: 8px 0 0 39px; }
 	.player-actions.open { display: flex; }
 	.player-actions button { flex: 1; min-width: 0; }
+	.history-event { align-items: center; flex-wrap: wrap; }
+	.history-event .event-copy { flex: 1; min-width: 0; }
+	.history-event .delete-event { flex-shrink: 0; padding: 7px 9px; }
 	@media (max-width: 800px) { .app { padding-top: calc(4px + env(safe-area-inset-top)); } .grid { grid-template-columns: minmax(0, 1fr); } .hero h1 { font-size: 48px; } .task { align-items: flex-start; flex-wrap: wrap; } .task-text { flex-basis: 100%; } .task .points { margin-left: auto; } }
 </style>
 </head>
@@ -40,6 +46,20 @@
 <div id="appScreen" class="app hidden"><header class="topbar"><div class="brand"><div class="mark">MR</div><div><div class="brand-name">MASTER RIZZLER</div><div id="groupMeta" class="brand-meta"></div></div></div><div class="userbar"><img id="userAvatar" class="avatar hidden" alt=""><div id="userInitials" class="avatar"></div><button class="outline" id="changeGroup">Groups</button><button class="ghost" id="logout">Log out</button></div></header><section class="hero"><p class="eyebrow">Current group</p><h1 id="groupTitle">Master Rizzler</h1><p>One shared board for brave moves, sharp penalties, and a score that everyone can see.</p></section><div class="grid"><section class="panel"><div class="panel-head"><div><p class="eyebrow">Live standings</p><h2>Leaderboard</h2></div><button class="outline" id="copyCode">Copy code</button></div><div id="leaderboard"></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">Group toolkit</p><h2>Add points</h2></div></div><select id="selectedPlayer" class="field"></select><div id="tasks"></div><div id="adminTools" class="hidden"><h2 style="margin-top:24px">Manage tasks</h2><form id="taskForm" class="row"><input class="field" name="description" placeholder="Task or punishment description" required maxlength="200"><input class="field" name="points" type="number" placeholder="Points" required><button class="primary" type="submit">Add</button></form></div></section><section class="panel"><p class="eyebrow">The log</p><h2>History</h2><div id="history" class="history"></div></section><section class="panel"><p class="eyebrow">At a glance</p><h2>Summary</h2><div id="summary" class="summary-list"></div></section><section id="requestsPanel" class="panel hidden"><p class="eyebrow">Admin inbox</p><h2>Join requests</h2><div id="requests"></div></section></div></div>
 <script>
 const $=id=>document.getElementById(id);let token=localStorage.getItem("rizzlerToken");let currentGroup=null;let authMode="login";let currentState=null;
+	const forgotPasswordButton = document.createElement("button");
+	forgotPasswordButton.type = "button";
+	forgotPasswordButton.className = "switch";
+	forgotPasswordButton.id = "forgotPassword";
+	forgotPasswordButton.textContent = "Forgot password?";
+	forgotPasswordButton.onclick = async () => {
+		const email = $("authForm").elements.email.value.trim();
+		if (!email) { $("authError").textContent = "Enter your email address first."; return; }
+		try {
+			const result = await api("/api/state?action=auth", { method: "POST", body: JSON.stringify({ mode: "reset", email, redirectTo: location.origin }) });
+			$("authError").textContent = result.message;
+		} catch (error) { $("authError").textContent = error.message; }
+	};
+	$("authSwitch").after(forgotPasswordButton);
 async function api(path,options={}){const headers={"content-type":"application/json",...(token?{authorization:`Bearer ${token}`}:{})};const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);try{const res=await fetch(path,{...options,signal:controller.signal,headers:{...headers,...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"Something went wrong.");return data}catch(error){if(error.name==="AbortError")throw new Error("The request timed out. Check your Supabase authentication settings.");throw error}finally{clearTimeout(timeout)}}
 function initials(name){return (name||"P").trim().slice(0,2).toUpperCase()}
 function show(which){["authScreen","lobbyScreen","appScreen"].forEach(id=>$(id).classList.toggle("hidden",id!==which))}
@@ -56,7 +76,7 @@ const originalRenderGroup=renderGroup;renderGroup=()=>{originalRenderGroup();con
 async function editTask(taskId){const task=currentState.tasks.find(item=>item.id===taskId);const description=prompt('Task description',task.description);if(description===null)return;const points=prompt('Points',task.points);if(points===null)return;try{currentState=await api('/api/state?action=edit-task',{method:'PATCH',body:JSON.stringify({groupId:currentGroup,taskId,description,points:Number(points)})});renderGroup()}catch(error){alert(error.message)}}
 async function deleteTask(taskId){if(!confirm('Delete this task? Existing history stays.'))return;try{currentState=await api('/api/state?action=delete-task',{method:'DELETE',body:JSON.stringify({groupId:currentGroup,taskId})});renderGroup()}catch(error){alert(error.message)}}
 async function setRole(userId){const member=currentState.members.find(item=>item.user_id===userId);try{currentState=await api('/api/state?action=set-role',{method:'POST',body:JSON.stringify({groupId:currentGroup,userId,role:member.role==='admin'?'member':'admin'})});renderGroup()}catch(error){alert(error.message)}}
-authRender();if(token)loadLobby();else show('authScreen');
+const originalAuthRender=authRender;authRender=()=>{originalAuthRender();forgotPasswordButton.classList.toggle("hidden",authMode==="register")};authRender();if(token)loadLobby();else show('authScreen');
 </script>
 <script>
 	const originalGroupRender = renderGroup;
@@ -91,9 +111,27 @@ authRender();if(token)loadLobby();else show('authScreen');
 			const ranked = [...activeMembers].sort((a, b) => (state.scores[b.user_id] || 0) - (state.scores[a.user_id] || 0));
 			rows.forEach((row, index) => { const member = ranked[index]; if (member && member.user_id !== me.user_id && member.role !== "owner") { const name = row.querySelector(".name"); const nameButton = document.createElement("button"); nameButton.className = "player-name"; nameButton.textContent = name.textContent; nameButton.setAttribute("aria-label", `Actions for ${member.profiles?.display_name || "player"}`); const actions = document.createElement("div"); actions.className = "player-actions"; const admin = document.createElement("button"); admin.className = "outline"; admin.textContent = member.role === "admin" ? "Remove admin" : "Make admin"; admin.onclick = () => setRole(member.user_id); const kick = document.createElement("button"); kick.className = "danger"; kick.textContent = "Remove"; kick.onclick = () => removeMember(member.user_id); actions.append(admin, kick); name.replaceWith(nameButton); row.append(actions); nameButton.onclick = event => { event.stopPropagation(); document.querySelectorAll(".player-actions.open").forEach(menu => menu.classList.remove("open")); actions.classList.toggle("open"); }; } });
 		}
+		const historyRows = [...document.querySelectorAll("#history .event")];
+		if (isAdmin) state.history.slice().reverse().forEach((event, index) => {
+			const row = historyRows[index];
+			if (!row || !event.id) return;
+			row.classList.add("history-event");
+			const copy = document.createElement("span");
+			copy.className = "event-copy";
+			while (row.firstChild) copy.appendChild(row.firstChild);
+			row.appendChild(copy);
+			const remove = document.createElement("button");
+			remove.type = "button";
+			remove.className = "danger delete-event";
+			remove.textContent = "Delete";
+			remove.title = "Delete this history entry and revert its points";
+			remove.onclick = () => deleteEvent(event);
+			row.appendChild(remove);
+		});
 	};
 	async function copyGroupCode() { try { await navigator.clipboard.writeText(currentState.group.code); const button = document.getElementById("heroCopyCode"); button.textContent = "Code copied"; setTimeout(() => { button.textContent = "Copy group code"; }, 1600); } catch { alert("Copy failed. Group code: " + currentState.group.code); } }
 	async function removeMember(userId) { if (!confirm("Remove this player from the group?")) return; try { currentState = await api("/api/state?action=remove-member", { method: "DELETE", body: JSON.stringify({ groupId: currentGroup, userId }) }); renderGroup(); } catch (error) { alert(error.message); } }
+	async function deleteEvent(event) { if (!confirm(`Delete ${event.player}'s entry for "${event.action}" and revert ${event.points > 0 ? "+" : ""}${event.points} points?`)) return; try { currentState = await api("/api/state?action=delete-event", { method: "DELETE", body: JSON.stringify({ groupId: currentGroup, eventId: event.id }) }); renderGroup(); } catch (error) { alert(error.message); } }
 </script>
 </body>
 </html>
