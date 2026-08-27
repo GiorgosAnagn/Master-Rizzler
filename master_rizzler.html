@@ -80,9 +80,12 @@ authRender();if(token)loadLobby();else show('authScreen');
 		const groupButton = document.getElementById("changeGroup");
 		if (groupButton) { groupButton.textContent = ""; groupButton.title = "Profile and groups"; groupButton.setAttribute("aria-label", "Profile and groups"); groupButton.className = "profile-button"; groupButton.onclick = loadLobby; }
 		const userAvatar = document.getElementById("userAvatar");
-		const userInitials = document.getElementById("userInitials");
-		if (me.profiles?.avatar_url) { userAvatar.src = me.profiles.avatar_url; userAvatar.classList.remove("hidden"); userInitials.classList.add("hidden"); groupButton.appendChild(userAvatar); }
-		else { userInitials.textContent = initials(me.profiles?.display_name); userInitials.classList.remove("hidden"); groupButton.appendChild(userInitials); }
+		let userInitials = document.getElementById("userInitials");
+		if (!userInitials) { userInitials = document.createElement("span"); userInitials.id = "userInitials"; userInitials.className = "avatar"; groupButton?.appendChild(userInitials); }
+		if (groupButton) { groupButton.className = "profile-button"; groupButton.textContent = ""; groupButton.title = "Profile and groups"; groupButton.setAttribute("aria-label", "Profile and groups"); groupButton.onclick = loadLobby; }
+		if (userAvatar && me.profiles?.avatar_url) { userAvatar.src = me.profiles.avatar_url; userAvatar.classList.remove("hidden"); userInitials.classList.add("hidden"); groupButton?.appendChild(userAvatar); }
+		else if (userInitials) { userInitials.textContent = initials(me.profiles?.display_name); userInitials.classList.remove("hidden"); groupButton?.appendChild(userInitials); }
+		document.querySelectorAll("#leaderboard .leader > button").forEach(button => button.remove());
 		if (isAdmin) {
 			const rows = [...document.querySelectorAll("#leaderboard .leader")];
 			const ranked = [...activeMembers].sort((a, b) => (state.scores[b.user_id] || 0) - (state.scores[a.user_id] || 0));
