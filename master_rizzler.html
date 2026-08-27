@@ -16,11 +16,17 @@
 </style>
 <style>
 	.app { padding-top: calc(8px + env(safe-area-inset-top)); }
+	html, body { max-width: 100%; overflow-x: hidden; }
+	.app, .grid, .panel, .hero, .topbar, .userbar, .row, .task, .leader { min-width: 0; max-width: 100%; }
+	.grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); }
+	.task-text, .name, .brand, .hero { min-width: 0; overflow-wrap: anywhere; }
+	.row .field { min-width: 0; }
+	.task button, .leader button, .score, .points { flex-shrink: 0; }
 	.topbar { padding-top: 2px; padding-bottom: 12px; }
 	.hero { padding-top: 10px; padding-bottom: 18px; }
 	.profile-button { padding: 0; background: transparent; border-radius: 50%; }
 	.profile-button .avatar { border: 1px solid var(--line); }
-	@media (max-width: 800px) { .app { padding-top: calc(4px + env(safe-area-inset-top)); } .hero h1 { font-size: 48px; } }
+	@media (max-width: 800px) { .app { padding-top: calc(4px + env(safe-area-inset-top)); } .grid { grid-template-columns: minmax(0, 1fr); } .hero h1 { font-size: 48px; } .task { align-items: flex-start; flex-wrap: wrap; } .task-text { flex-basis: 100%; } .task .points { margin-left: auto; } }
 </style>
 </head>
 <body>
