@@ -74,6 +74,12 @@ module.exports = async function handler(request, response) {
   const client = supabase();
   try {
     const input = body(request);
+    if (request.method === "GET" && request.query?.action === "config") {
+      const url = String(process.env.SUPABASE_URL || "").trim().replace(/^['"`]|['"`]$/g, "").replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+      const anonKey = String(process.env.SUPABASE_ANON_KEY || "").trim().replace(/^['"`]|['"`]$/g, "");
+      if (!url || !anonKey) return fail(response, 500, "Supabase public authentication key is missing in Vercel.");
+      return response.status(200).json({ url, anonKey });
+    }
     if (request.method === "POST" && request.query?.action === "auth") {
       const { mode, email, password, displayName } = input;
       if (mode === "reset") {
@@ -132,6 +138,23 @@ module.exports = async function handler(request, response) {
       const { error: joinError } = await client.from("group_members").upsert({ group_id: group.id, user_id: user.id, role: "member", status: "pending", invited_by: user.id }, { onConflict: "group_id,user_id" });
       if (joinError) throw joinError;
       return response.status(200).json({ message: "Join request sent to the group admins." });
+    }
+
+    if (request.method === "DELETE" && request.query?.action === "leave-group") {
+      const existing = await membership(client, input.groupId, user.id, false);
+      if (!existing || existing.status !== "active") return fail(response, 404, "You are not an active member of this group.");
+      if (existing.role === "owner") return fail(response, 400, "The group owner must delete the group or transfer ownership before leaving.");
+      const { error } = await client.from("group_members").delete().eq("group_id", input.groupId).eq("user_id", user.id);
+      if (error) throw error;
+      return response.status(200).json({ message: "You left the group." });
+    }
+
+    if (request.method === "DELETE" && request.query?.action === "delete-group") {
+      const existing = await membership(client, input.groupId, user.id, false);
+      if (!existing || existing.role !== "owner" || existing.status !== "active") return fail(response, 403, "Only the group owner can delete this group.");
+      const { error } = await client.from("groups").delete().eq("id", input.groupId).eq("owner_id", user.id);
+      if (error) throw error;
+      return response.status(200).json({ message: "Group deleted." });
     }
 
     if (request.method === "POST" && request.query?.action === "update-profile") {

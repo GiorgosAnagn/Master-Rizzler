@@ -9,6 +9,7 @@ Master Rizzler is a mobile-friendly group scoring app. Accounts use Supabase Aut
 3. Run the complete `supabase_schema.sql` file. It is rerunnable and moves the original fixed-player tables to `legacy_players` and `legacy_point_events` if they are still present.
 4. In **Authentication > Providers**, enable Email sign-ups.
 5. Decide whether to require email confirmation. If enabled, registration shows a confirmation message and the user must confirm before signing in.
+6. Re-running this SQL also adds `point_events`, `group_tasks`, and `group_members` to the `supabase_realtime` publication.
 
 ## Vercel environment variables
 
@@ -20,6 +21,8 @@ Keep these in the Vercel project settings for Production and Preview:
 - `ADMIN_TOKEN`: legacy reset token; the new group workflow uses group roles
 
 Never commit the service key or put it in the HTML.
+
+The browser uses `SUPABASE_ANON_KEY` through the server's public `/api/state?action=config` response for password recovery and Realtime. No service key is returned to the browser.
 
 ## Deployment
 

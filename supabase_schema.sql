@@ -96,3 +96,16 @@ using (exists (select 1 from public.group_members m where m.group_id = public.gr
 drop policy if exists "members read events" on public.point_events;
 create policy "members read events" on public.point_events for select to authenticated
 using (exists (select 1 from public.group_members m where m.group_id = public.point_events.group_id and m.user_id = auth.uid() and m.status = 'active'));
+
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'point_events') then
+    alter publication supabase_realtime add table public.point_events;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_tasks') then
+    alter publication supabase_realtime add table public.group_tasks;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_members') then
+    alter publication supabase_realtime add table public.group_members;
+  end if;
+end $$;
