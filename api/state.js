@@ -75,8 +75,13 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     console.error(error);
-    const message = error.message && error.message.startsWith("Missing ")
-      ? error.message
+    const message = error.message && (
+      error.message.startsWith("Missing ") ||
+      error.message.includes("Supabase") ||
+      error.code ||
+      error.details
+    )
+      ? [error.message, error.code, error.details].filter(Boolean).join(" ")
       : "Ο server δεν είναι διαθέσιμος. Check the Vercel function logs.";
     return response.status(500).json({ error: message });
   }
