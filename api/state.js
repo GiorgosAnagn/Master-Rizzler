@@ -18,14 +18,25 @@ const penalties = [
 ];
 
 function client() {
+  const supabaseUrl = String(process.env.SUPABASE_URL || "")
+    .trim()
+    .replace(/^['"`]|['"`]$/g, "");
+  const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "")
+    .trim()
+    .replace(/^['"`]|['"`]$/g, "");
   const missing = [
-    !process.env.SUPABASE_URL && "SUPABASE_URL",
-    !process.env.SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY"
+    !supabaseUrl && "SUPABASE_URL",
+    !serviceRoleKey && "SUPABASE_SERVICE_ROLE_KEY"
   ].filter(Boolean);
   if (missing.length) {
     throw new Error(`Missing ${missing.join(" and ")} in Vercel environment variables.`);
   }
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  let parsedUrl;
+  try { parsedUrl = new URL(supabaseUrl); } catch { parsedUrl = null; }
+  if (!parsedUrl || !["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error("SUPABASE_URL must be the Supabase Project URL, beginning with https:// and ending in .supabase.co.");
+  }
+  return createClient(supabaseUrl, serviceRoleKey);
 }
 
 async function getState() {
@@ -77,6 +88,7 @@ module.exports = async function handler(request, response) {
     console.error(error);
     const message = error.message && (
       error.message.startsWith("Missing ") ||
+      error.message.startsWith("SUPABASE_URL ") ||
       error.message.includes("Supabase") ||
       error.code ||
       error.details
